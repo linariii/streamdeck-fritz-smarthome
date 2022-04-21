@@ -1,0 +1,38 @@
+{
+  "Actions": [
+    {
+      "Icon": "Images/power",
+      "Name": "Switch Power Usage",
+      "States": [
+        {
+          "Image": "Images/power",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Displays the current power usage of the selected switch",
+      "UUID": "com.linariii.switchpowerusage",
+      "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/SwitchPowerUsage.html"
+    }
+  ],
+  "Author": "linariii",
+  "Name": "FritzSmarthome",
+  "Description": "Streamdeck plugin to control your fritz smarthome devices",
+  "Icon": "Images/home",
+  "URL": "https://github.com/linariii/streamdeck-fritz-smarthome",
+  "Version": "1.0",
+  "CodePath": "FritzSmartHome",
+  "Category": "Fritz Smarthome",
+  "CategoryIcon": "Images/home",
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "4.9"
+  }
+}

@@ -25,19 +25,19 @@ jobs:
       run: msbuild FritzSmartHome.sln /p:Configuration=Release
     
     - name: Display the workspace path
-      run: echo $${{ github.workspace }}
+      run: echo ${{ github.workspace }}
       shell: cmd
       
     - name: Display the Release path
-      run: echo ${{ github.workspace }}/bin/Release/com.linariii.fritzsmarthome.sdPlugin
+      run: echo ${{ github.workspace }}\bin\Release\com.linariii.fritzsmarthome.sdPlugin
       shell: cmd
       
     - name: Display the Distribution path
-      run: echo ${{ github.workspace }}/Distribution/
+      run: echo ${{ github.workspace }}\Distribution
       shell: cmd
     
     - name: Create plugin with destributiontool
-      run: ${{ github.workspace }}/Distribution/DistributionTool.exe -b -i "${{ github.workspace }}/bin/Release/com.linariii.fritzsmarthome.sdPlugin" -o "${{ github.workspace }}"
+      run: ${{ github.workspace }}\Distribution\DistributionTool.exe -b -i ${{ github.workspace }}\bin\Release\com.linariii.fritzsmarthome.sdPlugin -o ${{ github.workspace }}
       shell: cmd
       
     - name: release

@@ -44,13 +44,13 @@ function websocketOnOpen() {
 
     json = {
         event: "getSettings",
-        context: uuid,
+        context: uuid
     };
     websocket.send(JSON.stringify(json));
 
     json = {
         event: "getGlobalSettings",
-        context: uuid,
+        context: uuid
     };
     websocket.send(JSON.stringify(json));
 

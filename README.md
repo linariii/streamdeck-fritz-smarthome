@@ -3,7 +3,7 @@
 [![CI](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CI.yml/badge.svg)](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CI.yml) [![CD](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CD.yml/badge.svg)](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CD.yml)
 
 ## Features
-- display current power usage of AVM FRITZ!DECT 200 and AVM FRITZ!DECT 210[^1]
+- display current power usage of AVM FRITZ!DECT 200 and AVM FRITZ!DECT 210 [^1]
 - display current temperatur of AVM FRITZ!DECT 200, AVM FRITZ!DECT 210, AVM FRITZ!DECT 400 or Fritz Dect 440 [^2]
 - display current humidity of AVM FRITZ!DECT 400 or Fritz Dect 440 [^2]
 - display and change the current state of AVM FRITZ!DECT 200 and AVM FRITZ!DECT 210 [^2]

@@ -1,5 +1,7 @@
 # Fritz Homeautomation for Elgato Stream Deck
 
+[![CI](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CI.yml/badge.svg)](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CI.yml)[![CD](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CD.yml/badge.svg)](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CD.yml)
+
 ## Features
 - display current power usage of AVM FRITZ!DECT 200 and AVM FRITZ!DECT 210 (done)
 

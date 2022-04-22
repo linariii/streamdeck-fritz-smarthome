@@ -11,4 +11,4 @@
 ## Dependencies
 * Uses StreamDeck-Tools by BarRaider: [![NuGet](https://img.shields.io/nuget/v/streamdeck-tools.svg?style=flat)](https://www.nuget.org/packages/streamdeck-tools)
 * Uses [Easy-PI](https://github.com/BarRaider/streamdeck-easypi) by BarRaider - Provides seamless integration with the Stream Deck PI (Property Inspector) 
-* Uses fritz-homeautomation-csharp [![NuGet Badge](https://buildstats.info/nuget/Fritz.HomeAutomation)](https://www.nuget.org/packages/Fritz.HomeAutomation/)
+* Uses fritz-homeautomation-csharp [![NuGet](https://img.shields.io/nuget/v/Fritz.HomeAutomation.svg?style=flat)](https://www.nuget.org/packages/Fritz.HomeAutomation/)

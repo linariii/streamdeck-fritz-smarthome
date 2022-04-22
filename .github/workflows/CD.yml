@@ -1,0 +1,63 @@
+name: CD
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3  
+      
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.1
+      
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1.0.6
+      
+    - name: Restore Nuget packages
+      run: nuget restore FritzSmartHome.sln
+    
+    - name: Build the Solution
+      run: msbuild FritzSmartHome.sln /p:Configuration=Release
+    
+    - name: Display the workspace path
+      run: echo $GITHUB_WORKSPACE
+      shell: cmd
+      
+    - name: Display the Release path
+      run: echo $GITHUB_WORKSPACE/bin/Release/com.linariii.fritzsmarthome.sdPlugin
+      shell: cmd
+      
+    - name: Display the Distribution path
+      run: echo $GITHUB_WORKSPACE/Distribution/
+      shell: cmd
+    
+    - name: Create plugin with destributiontool
+      run: $GITHUB_WORKSPACE/Distribution/DistributionTool.exe -b -i "$GITHUB_WORKSPACE/bin/Release/com.linariii.fritzsmarthome.sdPlugin" -o "$GITHUB_WORKSPACE"
+      shell: cmd
+      
+    - name: release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:  
+        draft: false
+        prerelease: false
+        release_name: Release ${{ github.ref }}
+        tag_name: ${{ github.ref }}
+      
+    - name: upload windows artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./com.linariii.fritzsmarthome.streamDeckPlugin
+        asset_name: com.linariii.fritzsmarthome.streamDeckPlugin
+        asset_content_type: application/zip
+    

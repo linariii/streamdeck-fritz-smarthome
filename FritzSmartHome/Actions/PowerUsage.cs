@@ -1,6 +1,5 @@
 ﻿using BarRaider.SdTools;
 using FritzSmartHome.Actions.Models;
-using FritzSmartHome.Backend;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -8,14 +7,15 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
+using Fritz.HomeAutomation;
+using FritzSmartHome.Backend;
 
 namespace FritzSmartHome.Actions
 {
-    [PluginActionId("com.linariii.switchpowerusage")]
-    public partial class SwitchPowerUsage : PluginBase
+    [PluginActionId("com.linariii.powerusage")]
+    public class PowerUsage : PluginBase
     {
         private const int FetchCooldownSec = 300; // 5 min
-        private readonly string[] _supportedDevices = { "FRITZ!DECT 200", "FRITZ!DECT 210" };
         private PluginSettings _settings;
         private GlobalPluginSettings _globalSettings;
 
@@ -23,7 +23,7 @@ namespace FritzSmartHome.Actions
         {
             public static PluginSettings CreateDefaultSettings()
             {
-                var instance = new PluginSettings()
+                var instance = new PluginSettings
                 {
                     LastRefresh = DateTime.MinValue,
                 };
@@ -43,9 +43,9 @@ namespace FritzSmartHome.Actions
             public string Title { get; set; }
         }
 
-        public SwitchPowerUsage(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public PowerUsage(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Constructor called");
+            Logger.Instance.LogMessage(TracingLevel.INFO, "Constructor called");
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
                 _globalSettings = GlobalPluginSettings.CreateDefaultSettings();
@@ -61,12 +61,12 @@ namespace FritzSmartHome.Actions
             }
 
             GlobalSettingsManager.Instance.RequestGlobalSettings();
-            UpdateFritzboxBaseUrl();
+            UpdateBaseUrl();
         }
 
         public override void Dispose()
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Destructor called");
+            Logger.Instance.LogMessage(TracingLevel.INFO, "Destructor called");
         }
 
         public override void KeyPressed(KeyPayload payload) { }
@@ -103,7 +103,7 @@ namespace FritzSmartHome.Actions
         {
             try
             {
-                var sid = Fritzbox.Instance.Login(_globalSettings.UserName, _globalSettings.Password);
+                var sid = await HomeAutomationClientWrapper.Instance.GetSid(_globalSettings.UserName, _globalSettings.Password);
                 if (!string.IsNullOrWhiteSpace(sid) && sid != "0000000000000000")
                 {
                     await Connection.ShowOk();
@@ -135,10 +135,10 @@ namespace FritzSmartHome.Actions
             {
                 try
                 {
-                    var data = Fritzbox.Instance.GetSwitchPower(_globalSettings.Sid, _settings.Ain);
-                    if (data >= 0)
+                    var data = await HomeAutomationClientWrapper.Instance.GetSwitchPower(_globalSettings.Sid, _settings.Ain);
+                    if (data.HasValue && data.Value >= 0)
                     {
-                        await DrawData(data);
+                        await DrawData(data.Value);
                     }
                     _settings.LastRefresh = DateTime.Now;
                     await SaveSettings();
@@ -162,13 +162,10 @@ namespace FritzSmartHome.Actions
             {
                 try
                 {
-                    var deviseList = Fritzbox.Instance.GetDevices(_globalSettings.Sid);
-                    if (deviseList != null && deviseList.Devices != null)
+                    var devices = await HomeAutomationClientWrapper.Instance.GetFilteredDevices(_globalSettings.Sid, Functions.EnergyMeter);
+                    if (devices != null && devices.Any())
                     {
-                        var devices = deviseList.Devices.Where(d => d.Present == 1 && _supportedDevices.Contains(d.Productname))
-                        .Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList();
-
-                        _settings.Devices = devices;
+                        _settings.Devices = devices.Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
                     }
 
                     _settings.LastRefresh = DateTime.Now;
@@ -214,7 +211,7 @@ namespace FritzSmartHome.Actions
 
                     stringHeight = graphics.DrawAndMeasureString(_settings.Title, fontDefault, fgBrush, new PointF(stringWidth, stringHeight)) + currencyBufferY;
 
-                    var currStr = $"{data} W";
+                    var currStr = $"{data/1000} W";
                     var fontSizeCurrency = graphics.GetFontSizeWhereTextFitsImage(currStr, width, fontCurrency, 8);
                     fontCurrency = new Font(fontCurrency.Name, fontSizeCurrency, fontCurrency.Style, GraphicsUnit.Pixel);
                     stringWidth = graphics.GetTextCenter(currStr, width, fontCurrency);
@@ -264,7 +261,7 @@ namespace FritzSmartHome.Actions
                     {
                         updated = true;
                         _globalSettings.BaseUrl = settings.BaseUrl;
-                        UpdateFritzboxBaseUrl();
+                        UpdateBaseUrl();
                     }
 
                     if (settings.Password != _globalSettings.Password)
@@ -289,10 +286,10 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private void UpdateFritzboxBaseUrl()
+        private void UpdateBaseUrl()
         {
             if (!string.IsNullOrWhiteSpace(_globalSettings.BaseUrl))
-                Fritzbox.Instance.BaseUrl = _globalSettings.BaseUrl;
+                HomeAutomationClientWrapper.Instance.BaseUrl = _globalSettings.BaseUrl;
         }
 
         private async Task SaveSettings()

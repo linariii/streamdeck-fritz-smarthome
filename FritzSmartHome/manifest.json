@@ -2,23 +2,23 @@
   "Actions": [
     {
       "Icon": "Images/power",
-      "Name": "Switch Power Usage",
+      "Name": "Power usage",
       "States": [
         {
-          "Image": "Images/power",
+          "Image": "Images/power-key",
           "TitleAlignment": "middle",
           "FontSize": "12"
         }
       ],
       "SupportedInMultiActions": false,
-      "Tooltip": "Displays the current power usage of the selected switch",
-      "UUID": "com.linariii.switchpowerusage",
-      "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/SwitchPowerUsage.html"
+      "Tooltip": "Displays the amount of watt taken from the outlet",
+      "UUID": "com.linariii.powerusage",
+      "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/PowerUsage.html"
     }
   ],
   "Author": "linariii",
   "Name": "FritzSmarthome",
-  "Description": "Streamdeck plugin to control your fritz smarthome devices",
+  "Description": "Streamdeck plugin to control your fritz dect devices",
   "Icon": "Images/home",
   "URL": "https://github.com/linariii/streamdeck-fritz-smarthome",
   "Version": "1.0",

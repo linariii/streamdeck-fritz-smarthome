@@ -6,7 +6,7 @@ namespace FritzSmartHome.Actions
     {
         public static GlobalPluginSettings CreateDefaultSettings()
         {
-            GlobalPluginSettings instance = new GlobalPluginSettings
+            var instance = new GlobalPluginSettings
             {
                 BaseUrl = "http://fritz.box/"
             };

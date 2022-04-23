@@ -12,7 +12,7 @@
             var payload = jsonObj.payload;
             showHideSettings(payload);
         }
-        else if (/*jsonObj.event === 'didReceiveSettings' || */jsonObj.event === 'didReceiveGlobalSettings') {
+        else if (jsonObj.event === 'didReceiveGlobalSettings') {
             var payload = jsonObj.payload;
             showHideSettings(payload.settings);
         }

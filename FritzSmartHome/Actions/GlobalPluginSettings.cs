@@ -8,7 +8,7 @@ namespace FritzSmartHome.Actions
         {
             var instance = new GlobalPluginSettings
             {
-                BaseUrl = "http://fritz.box/"
+                BaseUrl = "http://fritz.box"
             };
             return instance;
         }

@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Fritz.HomeAutomation;
@@ -12,10 +11,10 @@ using FritzSmartHome.Backend;
 
 namespace FritzSmartHome.Actions
 {
-    [PluginActionId("com.linariii.powerusage")]
-    public class PowerUsage : PluginBase
+    [PluginActionId("com.linariii.outlet")]
+    public class Outlet : PluginBase
     {
-        private const int FetchCooldownSec = 300; // 5 min
+        private const int FetchCooldownSec = 60; // 1 min
         private readonly PluginSettings _settings;
         private readonly GlobalPluginSettings _globalSettings;
 
@@ -39,11 +38,11 @@ namespace FritzSmartHome.Actions
             [JsonProperty(PropertyName = "lastRefresh")]
             public DateTime LastRefresh { get; set; }
 
-            [JsonProperty(PropertyName = "title")]
-            public string Title { get; set; }
+            [JsonProperty(PropertyName = "state")]
+            public int State { get; set; }
         }
 
-        public PowerUsage(SDConnection connection, InitialPayload payload) : base(connection, payload)
+        public Outlet(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, "Constructor called");
             if (payload.Settings == null || payload.Settings.Count == 0)
@@ -69,7 +68,38 @@ namespace FritzSmartHome.Actions
             Logger.Instance.LogMessage(TracingLevel.INFO, "Destructor called");
         }
 
-        public override void KeyPressed(KeyPayload payload) { }
+        public override async void KeyPressed(KeyPayload payload)
+        {
+            if (_globalSettings == null || _settings == null)
+                return;
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(_globalSettings.Sid) && !string.IsNullOrWhiteSpace(_settings.Ain))
+                {
+                    var state = await HomeAutomationClientWrapper.Instance.SetSwitchToggle(_globalSettings.Sid, _settings.Ain);
+                    if (state.HasValue)
+                    {
+                        if (_settings.State != state.Value)
+                        {
+                            _settings.State = state.Value;
+                            await Connection.SetStateAsync((uint)state.Value);
+                        }
+                    }
+                    _settings.LastRefresh = DateTime.Now;
+                    await SaveSettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                await Connection.ShowAlert();
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"Error loading data: {ex}");
+                if (!string.IsNullOrEmpty(_globalSettings.Sid))
+                {
+                    _globalSettings.Sid = null;
+                    await SaveGlobalSettings();
+                }
+            }
+        }
 
         public override void KeyReleased(KeyPayload payload) { }
 
@@ -95,7 +125,7 @@ namespace FritzSmartHome.Actions
 
             if (!string.IsNullOrWhiteSpace(_globalSettings.Sid) && !string.IsNullOrWhiteSpace(_settings.Ain))
             {
-                await LoadData();
+                await LoadState();
             }
         }
 
@@ -127,7 +157,7 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private async Task LoadData()
+        private async Task LoadState()
         {
             if ((DateTime.Now - _settings.LastRefresh).TotalSeconds > FetchCooldownSec
                 && !string.IsNullOrWhiteSpace(_globalSettings.Sid)
@@ -135,10 +165,14 @@ namespace FritzSmartHome.Actions
             {
                 try
                 {
-                    var data = await HomeAutomationClientWrapper.Instance.GetSwitchPower(_globalSettings.Sid, _settings.Ain);
-                    if (data.HasValue && data.Value >= 0)
+                    var data = await HomeAutomationClientWrapper.Instance.GetSwitchState(_globalSettings.Sid, _settings.Ain);
+                    if (data.HasValue)
                     {
-                        await DrawData(data.Value);
+                        if (_settings.State != data.Value)
+                        {
+                            _settings.State = data.Value;
+                            await Connection.SetStateAsync((uint)data.Value);
+                        }
                     }
                     _settings.LastRefresh = DateTime.Now;
                     await SaveSettings();
@@ -162,7 +196,7 @@ namespace FritzSmartHome.Actions
             {
                 try
                 {
-                    var devices = await HomeAutomationClientWrapper.Instance.GetFilteredDevices(_globalSettings.Sid, Functions.EnergyMeter);
+                    var devices = await HomeAutomationClientWrapper.Instance.GetFilteredDevices(_globalSettings.Sid, Functions.Outlet);
                     if (devices != null && devices.Any())
                     {
                         _settings.Devices = devices.Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
@@ -184,51 +218,6 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private async Task DrawData(double data)
-        {
-            const int startingTextY = 21;
-            const int currencyBufferY = 21;
-            try
-            {
-                using (Bitmap bmp = Tools.GenerateGenericKeyImage(out Graphics graphics))
-                {
-                    var height = bmp.Height;
-                    var width = bmp.Width;
-
-                    var fontDefault = new Font("Verdana", 20, FontStyle.Bold, GraphicsUnit.Pixel);
-                    var fontCurrency = new Font("Verdana", 32, FontStyle.Bold, GraphicsUnit.Pixel);
-
-                    // Background
-                    var bgBrush = new SolidBrush(Color.Black);
-                    graphics.FillRectangle(bgBrush, 0, 0, width, height);
-                    var fgBrush = new SolidBrush(Color.White);
-
-                    // Top title
-                    float stringHeight = startingTextY;
-                    var fontSizeDefault = graphics.GetFontSizeWhereTextFitsImage(_settings.Title, width, fontDefault, 8);
-                    fontDefault = new Font(fontDefault.Name, fontSizeDefault, fontDefault.Style, GraphicsUnit.Pixel);
-                    var stringWidth = graphics.GetTextCenter(_settings.Title, width, fontDefault);
-
-                    stringHeight = graphics.DrawAndMeasureString(_settings.Title, fontDefault, fgBrush, new PointF(stringWidth, stringHeight)) + currencyBufferY;
-
-                    var currStr = $"{data/1000} W";
-                    var fontSizeCurrency = graphics.GetFontSizeWhereTextFitsImage(currStr, width, fontCurrency, 8);
-                    fontCurrency = new Font(fontCurrency.Name, fontSizeCurrency, fontCurrency.Style, GraphicsUnit.Pixel);
-                    stringWidth = graphics.GetTextCenter(currStr, width, fontCurrency);
-                    graphics.DrawAndMeasureString(currStr, fontCurrency, fgBrush, new PointF(stringWidth, stringHeight));
-
-                    await Connection.SetImageAsync(bmp);
-                    graphics.Dispose();
-                    fontDefault.Dispose();
-                    fontCurrency.Dispose();
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"{GetType()} Error drawing data {ex}");
-            }
-        }
-
         public override async void ReceivedSettings(ReceivedSettingsPayload payload)
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, $"ReceivedSettings");
@@ -237,10 +226,6 @@ namespace FritzSmartHome.Actions
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"ReceivedSettings: {payload.Settings}");
                 if (Tools.AutoPopulateSettings(_settings, payload.Settings) > 0)
                 {
-                    if (!string.IsNullOrWhiteSpace(_settings.Ain))
-                    {
-                        _settings.Title = _settings.Devices.FirstOrDefault(d => d.Ain == _settings.Ain)?.Name;
-                    }
                     _settings.LastRefresh = DateTime.MinValue;
                     await SaveSettings();
                 }
@@ -249,7 +234,7 @@ namespace FritzSmartHome.Actions
 
         public override async void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"ReceivedGlobalSettings");
+            Logger.Instance.LogMessage(TracingLevel.INFO, "ReceivedGlobalSettings");
             if (payload.Settings != null && payload.Settings.Count > 0)
             {
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"ReceivedGlobalSettings: {payload.Settings}");

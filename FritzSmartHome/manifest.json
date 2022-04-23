@@ -5,15 +5,31 @@
       "Name": "Power usage",
       "States": [
         {
-          "Image": "Images/power-key",
-          "TitleAlignment": "middle",
-          "FontSize": "12"
+          "Image": "Images/power-key"
         }
       ],
       "SupportedInMultiActions": false,
       "Tooltip": "Displays the amount of watt taken from the outlet",
       "UUID": "com.linariii.powerusage",
       "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/PowerUsage.html"
+    },
+    {
+      "Icon": "Images/outlet",
+      "Name": "Outlet",
+      "States": [
+        {
+          "Image": "Images/off",
+          "Name": "Off"
+        },
+        {
+          "Image": "Images/on",
+          "Name": "On"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Display or change the state of the outlet",
+      "UUID": "com.linariii.outlet",
+      "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Outlet.html"
     }
   ],
   "Author": "linariii",

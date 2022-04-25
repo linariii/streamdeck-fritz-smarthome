@@ -65,6 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\ActionBase.cs" />
     <Compile Include="Actions\GlobalPluginSettings.cs" />
     <Compile Include="Actions\Models\Device.cs" />
     <Compile Include="Actions\Outlet.cs" />

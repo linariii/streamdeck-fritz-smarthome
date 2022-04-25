@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Fritz.HomeAutomation;
 using FritzSmartHome.Backend;
@@ -12,11 +13,10 @@ using FritzSmartHome.Backend;
 namespace FritzSmartHome.Actions
 {
     [PluginActionId("com.linariii.outlet")]
-    public class Outlet : PluginBase
+    public class Outlet : ActionBase
     {
         private const int FetchCooldownSec = 60; // 1 min
         private readonly PluginSettings _settings;
-        private readonly GlobalPluginSettings _globalSettings;
 
         private class PluginSettings
         {
@@ -47,13 +47,11 @@ namespace FritzSmartHome.Actions
             Logger.Instance.LogMessage(TracingLevel.INFO, "Constructor called");
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
-                _globalSettings = GlobalPluginSettings.CreateDefaultSettings();
                 _settings = PluginSettings.CreateDefaultSettings();
             }
             else
             {
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"Settings: {payload.Settings}");
-                _globalSettings = GlobalPluginSettings.CreateDefaultSettings();
                 _settings = payload.Settings.ToObject<PluginSettings>();
                 if (_settings != null)
                     _settings.LastRefresh = DateTime.MinValue;
@@ -61,11 +59,6 @@ namespace FritzSmartHome.Actions
 
             GlobalSettingsManager.Instance.RequestGlobalSettings();
             UpdateBaseUrl();
-        }
-
-        public override void Dispose()
-        {
-            Logger.Instance.LogMessage(TracingLevel.INFO, "Destructor called");
         }
 
         public override async void KeyPressed(KeyPayload payload)
@@ -108,52 +101,45 @@ namespace FritzSmartHome.Actions
             if (_globalSettings == null || _settings == null)
                 return;
 
-            if (string.IsNullOrWhiteSpace(_globalSettings.Sid)
-                && !string.IsNullOrWhiteSpace(_globalSettings.UserName)
-                && !string.IsNullOrWhiteSpace(_globalSettings.Password)
-                && !string.IsNullOrWhiteSpace(_globalSettings.BaseUrl))
-            {
-                await Login();
+            if (_isRunning > 0)
                 return;
-            }
 
-            if (!string.IsNullOrWhiteSpace(_globalSettings.Sid) && (_settings.Devices == null || !_settings.Devices.Any()))
-            {
-                await LoadDevices();
-                return;
-            }
-
-            if (!string.IsNullOrWhiteSpace(_globalSettings.Sid) && !string.IsNullOrWhiteSpace(_settings.Ain))
-            {
-                await LoadState();
-            }
-        }
-
-        private async Task Login()
-        {
+            var locked = false;
             try
             {
-                var sid = await HomeAutomationClientWrapper.Instance.GetSid(_globalSettings.UserName, _globalSettings.Password);
-                if (!string.IsNullOrWhiteSpace(sid) && sid != "0000000000000000")
+                try { }
+                finally
                 {
-                    await Connection.ShowOk();
-                    _globalSettings.Sid = sid;
-                    await SaveGlobalSettings();
+                    locked = Interlocked.CompareExchange(ref _isRunning, 1, 0) == 0;
                 }
-                else
+
+                if (locked)
                 {
-                    await Connection.ShowAlert();
+                    if (string.IsNullOrWhiteSpace(_globalSettings.Sid)
+                        && !string.IsNullOrWhiteSpace(_globalSettings.UserName)
+                        && !string.IsNullOrWhiteSpace(_globalSettings.Password)
+                        && !string.IsNullOrWhiteSpace(_globalSettings.BaseUrl))
+                    {
+                        await Login();
+                        return;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(_globalSettings.Sid) && (_settings.Devices == null || !_settings.Devices.Any()))
+                    {
+                        await LoadDevices();
+                        return;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(_globalSettings.Sid) && !string.IsNullOrWhiteSpace(_settings.Ain))
+                    {
+                        await LoadState();
+                    }
                 }
             }
-            catch (Exception ex)
+            finally
             {
-                await Connection.ShowAlert();
-                Logger.Instance.LogMessage(TracingLevel.ERROR, $"Error loading data: {ex}");
-                if (!string.IsNullOrEmpty(_globalSettings.Sid))
-                {
-                    _globalSettings.Sid = null;
-                    await SaveGlobalSettings();
-                }
+                if (locked)
+                    Interlocked.Exchange(ref _isRunning, 0);
             }
         }
 
@@ -179,13 +165,8 @@ namespace FritzSmartHome.Actions
                 }
                 catch (Exception ex)
                 {
-                    await Connection.ShowAlert();
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"Error loading data: {ex}");
-                    if (!string.IsNullOrEmpty(_globalSettings.Sid))
-                    {
-                        _globalSettings.Sid = null;
-                        await SaveGlobalSettings();
-                    }
+                    await ResetSidAndShowAlert();
                 }
             }
         }
@@ -207,13 +188,8 @@ namespace FritzSmartHome.Actions
                 }
                 catch (Exception ex)
                 {
-                    await Connection.ShowAlert();
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"Error loading data: {ex}");
-                    if (!string.IsNullOrEmpty(_globalSettings.Sid))
-                    {
-                        _globalSettings.Sid = null;
-                        await SaveGlobalSettings();
-                    }
+                    await ResetSidAndShowAlert();
                 }
             }
         }
@@ -232,64 +208,10 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        public override async void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
-        {
-            Logger.Instance.LogMessage(TracingLevel.INFO, "ReceivedGlobalSettings");
-            if (payload.Settings != null && payload.Settings.Count > 0)
-            {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"ReceivedGlobalSettings: {payload.Settings}");
-                var settings = payload.Settings.ToObject<GlobalPluginSettings>();
-                if (settings != null && _globalSettings != null)
-                {
-                    var updated = false;
-                    if (settings.BaseUrl != _globalSettings.BaseUrl)
-                    {
-                        updated = true;
-                        _globalSettings.BaseUrl = settings.BaseUrl;
-                        UpdateBaseUrl();
-                    }
-
-                    if (settings.Password != _globalSettings.Password)
-                    {
-                        updated = true;
-                        _globalSettings.Password = settings.Password;
-                    }
-
-                    if (settings.UserName != _globalSettings.UserName)
-                    {
-                        updated = true;
-                        _globalSettings.UserName = settings.UserName;
-                    }
-
-                    if (settings.Sid != _globalSettings.Sid)
-                    {
-                        _globalSettings.Sid = settings.Sid;
-                    }
-
-                    await SaveGlobalSettings(updated);
-                }
-            }
-        }
-
-        private void UpdateBaseUrl()
-        {
-            if (!string.IsNullOrWhiteSpace(_globalSettings.BaseUrl))
-                HomeAutomationClientWrapper.Instance.BaseUrl = _globalSettings.BaseUrl;
-        }
-
         private async Task SaveSettings()
         {
             Logger.Instance.LogMessage(TracingLevel.INFO, $"SaveSettings: {JObject.FromObject(_settings)}");
             await Connection.SetSettingsAsync(JObject.FromObject(_settings));
-        }
-
-        private async Task SaveGlobalSettings(bool triggerDidReceiveGlobalSettings = true)
-        {
-            if (_globalSettings != null)
-            {
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"SaveGlobalSettings: {JObject.FromObject(_globalSettings)}");
-                await Connection.SetGlobalSettingsAsync(JObject.FromObject(_globalSettings), triggerDidReceiveGlobalSettings);
-            }
         }
     }
 }

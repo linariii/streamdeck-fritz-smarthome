@@ -138,7 +138,8 @@ namespace FritzSmartHome.Actions
                     var data = await HomeAutomationClientWrapper.Instance.GetSwitchPower(_globalSettings.Sid, _settings.Ain);
                     if (data.HasValue && data.Value >= 0)
                     {
-                        await DrawData(data.Value);
+                        var powerUsage = (double)data.Value / 1000;
+                        await DrawData(Math.Round(powerUsage, 0));
                     }
                     _settings.LastRefresh = DateTime.Now;
                     await SaveSettings();
@@ -184,7 +185,7 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private async Task DrawData(double data)
+        private async Task DrawData(double powerUsage)
         {
             const int startingTextY = 21;
             const int currencyBufferY = 21;
@@ -211,7 +212,7 @@ namespace FritzSmartHome.Actions
 
                     stringHeight = graphics.DrawAndMeasureString(_settings.Title, fontDefault, fgBrush, new PointF(stringWidth, stringHeight)) + currencyBufferY;
 
-                    var currStr = $"{data/1000} W";
+                    var currStr = $"{powerUsage} W";
                     var fontSizeCurrency = graphics.GetFontSizeWhereTextFitsImage(currStr, width, fontCurrency, 8);
                     fontCurrency = new Font(fontCurrency.Name, fontSizeCurrency, fontCurrency.Style, GraphicsUnit.Pixel);
                     stringWidth = graphics.GetTextCenter(currStr, width, fontCurrency);

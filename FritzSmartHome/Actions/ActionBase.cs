@@ -16,10 +16,7 @@ namespace FritzSmartHome.Actions
             GlobalSettingsManager.Instance.RequestGlobalSettings();
         }
 
-        public override void Dispose()
-        {
-            Logger.Instance.LogMessage(TracingLevel.INFO, "Destructor called");
-        }
+        public override void Dispose() { }
 
         public override void KeyPressed(KeyPayload payload) { }
 
@@ -29,7 +26,9 @@ namespace FritzSmartHome.Actions
         {
             if (_globalSettings != null)
             {
+#if DEBUG
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"SaveGlobalSettings: {JObject.FromObject(_globalSettings)}");
+#endif
                 await Connection.SetGlobalSettingsAsync(JObject.FromObject(_globalSettings), triggerDidReceiveGlobalSettings);
             }
         }
@@ -52,22 +51,21 @@ namespace FritzSmartHome.Actions
             }
             catch (Exception ex)
             {
-                await Connection.ShowAlert();
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"Error loading data: {ex}");
-                if (!string.IsNullOrEmpty(_globalSettings.Sid))
-                {
-                    _globalSettings.Sid = null;
-                    await SaveGlobalSettings();
-                }
+                await ResetSidAndShowAlert();
             }
         }
 
         public override async void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"ReceivedGlobalSettings");
+#if DEBUG
+            Logger.Instance.LogMessage(TracingLevel.INFO, "ReceivedGlobalSettings");
+#endif
             if (payload.Settings != null && payload.Settings.Count > 0)
             {
+#if DEBUG
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"ReceivedGlobalSettings: {payload.Settings}");
+#endif
                 var settings = payload.Settings.ToObject<GlobalPluginSettings>();
                 if (settings != null && _globalSettings != null)
                 {
@@ -110,7 +108,6 @@ namespace FritzSmartHome.Actions
                 await SaveGlobalSettings();
             }
         }
-
 
         private protected void UpdateBaseUrl()
         {

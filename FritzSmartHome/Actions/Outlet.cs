@@ -44,14 +44,15 @@ namespace FritzSmartHome.Actions
 
         public Outlet(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, "Constructor called");
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
                 _settings = PluginSettings.CreateDefaultSettings();
             }
             else
             {
+#if DEBUG
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"Settings: {payload.Settings}");
+#endif
                 _settings = payload.Settings.ToObject<PluginSettings>();
                 if (_settings != null)
                     _settings.LastRefresh = DateTime.MinValue;
@@ -84,13 +85,8 @@ namespace FritzSmartHome.Actions
             }
             catch (Exception ex)
             {
-                await Connection.ShowAlert();
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"Error loading data: {ex}");
-                if (!string.IsNullOrEmpty(_globalSettings.Sid))
-                {
-                    _globalSettings.Sid = null;
-                    await SaveGlobalSettings();
-                }
+                await ResetSidAndShowAlert();
             }
         }
 
@@ -196,10 +192,14 @@ namespace FritzSmartHome.Actions
 
         public override async void ReceivedSettings(ReceivedSettingsPayload payload)
         {
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"ReceivedSettings");
+#if DEBUG
+            Logger.Instance.LogMessage(TracingLevel.INFO, "ReceivedSettings");
+#endif
             if (payload.Settings != null && payload.Settings.Count > 0)
             {
+#if DEBUG
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"ReceivedSettings: {payload.Settings}");
+#endif
                 if (Tools.AutoPopulateSettings(_settings, payload.Settings) > 0)
                 {
                     _settings.LastRefresh = DateTime.MinValue;
@@ -210,7 +210,9 @@ namespace FritzSmartHome.Actions
 
         private async Task SaveSettings()
         {
+#if DEBUG
             Logger.Instance.LogMessage(TracingLevel.INFO, $"SaveSettings: {JObject.FromObject(_settings)}");
+#endif
             await Connection.SetSettingsAsync(JObject.FromObject(_settings));
         }
     }

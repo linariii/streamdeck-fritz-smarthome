@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
     <script src="../common.js"></script>
     <script src="../fritz.js"></script>
+    <script src="../reloadDevices.js"></script>
 </head>
 <body>
     <div class="sdpi-wrapper">
@@ -35,6 +36,10 @@
             <div class="sdpi-item">
                 <div class="sdpi-item-label">Device</div>
                 <select class="sdpi-item-value select sdProperty sdList" id="devices" oninput="setSettings()" sdListTextProperty="name" sdListValueProperty="ain" sdValueField="ain"></select>
+            </div>
+            <div class="sdpi-item" id="dvRefreshDevices">
+                <div class="sdpi-item-label">Refresh</div>
+                <button class="sdpi-item-value" onclick="reloadDevices()">Reload devices</button>
             </div>
         </div>
     </div>

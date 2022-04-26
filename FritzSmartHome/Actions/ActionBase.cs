@@ -1,22 +1,61 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using BarRaider.SdTools;
+using Fritz.HomeAutomation;
 using FritzSmartHome.Backend;
+using FritzSmartHome.Models;
+using FritzSmartHome.Settings;
 using Newtonsoft.Json.Linq;
 
 namespace FritzSmartHome.Actions
 {
     public abstract class ActionBase : PluginBase
     {
+        private protected readonly Functions _deviceFilter;
         private protected readonly GlobalPluginSettings _globalSettings;
+        private protected PluginSettingsBase _settings;
         private protected int _isRunning = 0;
-        protected ActionBase(ISDConnection connection, InitialPayload payload) : base(connection, payload)
+        private protected const int DeviceFetchCooldownSec = 300;
+
+        protected ActionBase(ISDConnection connection, InitialPayload payload, Functions deviceFilter) : base(connection, payload)
         {
+            _deviceFilter = deviceFilter;
             _globalSettings = GlobalPluginSettings.CreateDefaultSettings();
             GlobalSettingsManager.Instance.RequestGlobalSettings();
+            Connection.OnSendToPlugin += Connection_OnSendToPlugin;
         }
 
-        public override void Dispose() { }
+        private async void Connection_OnSendToPlugin(object sender, BarRaider.SdTools.Wrappers.SDEventReceivedEventArgs<BarRaider.SdTools.Events.SendToPlugin> e)
+        {
+            var payload = e.Event.Payload;
+            try
+            {
+#if DEBUG
+                Logger.Instance.LogMessage(TracingLevel.INFO, "Received Payload: " + payload);
+#endif
+                if (payload["property_inspector"] == null)
+                    return;
+
+                var lowerInvariant = payload["property_inspector"].ToString().ToLowerInvariant();
+                if (lowerInvariant == "reloaddevices")
+                {
+#if DEBUG
+                    Logger.Instance.LogMessage(TracingLevel.INFO, "ReloadDevices called");
+#endif
+                    await LoadDevices();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, $"{GetType()} OnSendToPlugin exception: {ex}");
+            }
+        }
+
+        public override void Dispose()
+        {
+            Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
+        }
 
         public override void KeyPressed(KeyPayload payload) { }
 
@@ -31,6 +70,14 @@ namespace FritzSmartHome.Actions
 #endif
                 await Connection.SetGlobalSettingsAsync(JObject.FromObject(_globalSettings), triggerDidReceiveGlobalSettings);
             }
+        }
+
+        private protected async Task SaveSettings()
+        {
+#if DEBUG
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"SaveSettings: {JObject.FromObject(_settings)}");
+#endif
+            await Connection.SetSettingsAsync(JObject.FromObject(_settings));
         }
 
         private protected async Task Login()
@@ -53,6 +100,37 @@ namespace FritzSmartHome.Actions
             {
                 Logger.Instance.LogMessage(TracingLevel.ERROR, $"Error loading data: {ex}");
                 await ResetSidAndShowAlert();
+            }
+        }
+
+        private protected async Task ShouldLoadDevices()
+        {
+            if ((DateTime.Now - _settings.LastRefresh).TotalSeconds > DeviceFetchCooldownSec && !string.IsNullOrWhiteSpace(_globalSettings.Sid))
+            {
+                await LoadDevices();
+            }
+        }
+
+        private protected async Task LoadDevices()
+        {
+            if (!string.IsNullOrWhiteSpace(_globalSettings.Sid))
+            {
+                try
+                {
+                    var devices = await HomeAutomationClientWrapper.Instance.GetFilteredDevices(_globalSettings.Sid, _deviceFilter);
+                    if (devices != null && devices.Any())
+                    {
+                        _settings.Devices = devices.Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
+                    }
+
+                    _settings.LastRefresh = DateTime.Now;
+                    await SaveSettings();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"Error loading data: {ex}");
+                    await ResetSidAndShowAlert();
+                }
             }
         }
 

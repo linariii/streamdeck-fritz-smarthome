@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace FritzSmartHome.Actions.Models
+namespace FritzSmartHome.Models
 {
     public class Device
     {

@@ -110,6 +110,12 @@ namespace FritzSmartHome.Actions
                     {
                         await LoadState();
                     }
+
+                    if (!IsInitialized && Settings.State.HasValue)
+                    {
+                        IsInitialized = true;
+                        await Connection.SetStateAsync((uint)Settings.State.Value);
+                    }
                 }
             }
             finally
@@ -132,6 +138,7 @@ namespace FritzSmartHome.Actions
                     {
                         if (Settings.State != data.Value)
                         {
+                            IsInitialized = true;
                             Settings.State = data.Value;
                             await Connection.SetStateAsync((uint)data.Value);
                         }

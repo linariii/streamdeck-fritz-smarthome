@@ -17,10 +17,18 @@ namespace FritzSmartHome.Actions
         private protected PluginSettingsBase BaseSettings;
         private protected int IsRunning = 0;
         private protected const int DeviceFetchCooldownSec = 300;
+        private protected bool IsInitialized = false;
 
         protected ActionBase(ISDConnection connection, InitialPayload payload, Functions deviceFilter) : base(connection, payload)
         {
             DeviceFilter = deviceFilter;
+            GlobalSettings = GlobalPluginSettings.CreateDefaultSettings();
+            GlobalSettingsManager.Instance.RequestGlobalSettings();
+            Connection.OnSendToPlugin += Connection_OnSendToPlugin;
+        }
+
+        protected ActionBase(ISDConnection connection, InitialPayload payload) : base(connection, payload)
+        {
             GlobalSettings = GlobalPluginSettings.CreateDefaultSettings();
             GlobalSettingsManager.Instance.RequestGlobalSettings();
             Connection.OnSendToPlugin += Connection_OnSendToPlugin;
@@ -61,7 +69,7 @@ namespace FritzSmartHome.Actions
 
         public override void KeyReleased(KeyPayload payload) { }
 
-        private protected async Task SaveGlobalSettings(bool triggerDidReceiveGlobalSettings = true)
+        private protected virtual async Task SaveGlobalSettings(bool triggerDidReceiveGlobalSettings = true)
         {
             if (GlobalSettings != null)
             {
@@ -72,7 +80,7 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private protected async Task SaveSettings()
+        private protected virtual async Task SaveSettings()
         {
 #if DEBUG
             Logger.Instance.LogMessage(TracingLevel.INFO, $"SaveSettings: {JObject.FromObject(BaseSettings)}");
@@ -80,7 +88,7 @@ namespace FritzSmartHome.Actions
             await Connection.SetSettingsAsync(JObject.FromObject(BaseSettings));
         }
 
-        private protected async Task Login()
+        private protected virtual async Task Login()
         {
             try
             {
@@ -103,7 +111,7 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private protected async Task ShouldLoadDevices()
+        private protected virtual async Task ShouldLoadDevices()
         {
             if ((DateTime.Now - BaseSettings.LastRefresh).TotalSeconds > DeviceFetchCooldownSec && !string.IsNullOrWhiteSpace(GlobalSettings.Sid))
             {
@@ -112,7 +120,7 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private protected async Task LoadDevices()
+        private protected virtual async Task LoadDevices()
         {
             if (!string.IsNullOrWhiteSpace(GlobalSettings.Sid))
             {
@@ -178,7 +186,7 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private protected async Task ResetSidAndShowAlert()
+        private protected virtual async Task ResetSidAndShowAlert()
         {
             await Connection.ShowAlert();
             if (!string.IsNullOrEmpty(GlobalSettings.Sid))

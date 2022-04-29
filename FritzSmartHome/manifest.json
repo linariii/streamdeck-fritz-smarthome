@@ -30,6 +30,32 @@
       "Tooltip": "Display or change the state of the outlet",
       "UUID": "com.linariii.outlet",
       "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Outlet.html"
+    },
+    {
+      "Icon": "Images/thermometer",
+      "Name": "Temperature",
+      "States": [
+        {
+          "Image": "Images/thermometer-key"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Display the current temperature measured by the device",
+      "UUID": "com.linariii.temperature",
+      "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Temperature.html"
+    },
+    {
+      "Icon": "Images/humidity",
+      "Name": "Humidity",
+      "States": [
+        {
+          "Image": "Images/humidity-key"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Display the current humidity measured by the device",
+      "UUID": "com.linariii.humidity",
+      "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Humidity.html"
     }
   ],
   "Author": "linariii",

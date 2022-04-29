@@ -3,13 +3,13 @@ using Newtonsoft.Json;
 
 namespace FritzSmartHome.Settings
 {
-    public class PowerUsagePluginSettings : PluginSettingsBase
+    public class TemperaturePluginSettings : PluginSettingsBase
     {
-        public static PowerUsagePluginSettings CreateDefaultSettings()
+        public static TemperaturePluginSettings CreateDefaultSettings()
         {
-            var instance = new PowerUsagePluginSettings
+            var instance = new TemperaturePluginSettings
             {
-                LastRefresh = DateTime.MinValue,
+                LastRefresh = DateTime.MinValue
             };
             return instance;
         }
@@ -17,7 +17,7 @@ namespace FritzSmartHome.Settings
         [JsonProperty(PropertyName = "title")]
         public string Title { get; set; }
 
-        [JsonProperty(PropertyName = "data")]
+        [JsonProperty("data")]
         public double? Data { get; set; }
     }
 }

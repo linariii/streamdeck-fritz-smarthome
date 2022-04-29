@@ -4,40 +4,40 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fritz.HomeAutomation;
 using FritzSmartHome.Backend;
+using FritzSmartHome.Models;
 using FritzSmartHome.Settings;
 
 namespace FritzSmartHome.Actions
 {
-    [PluginActionId("com.linariii.powerusage")]
-    public class PowerUsage : ActionBase
+    [PluginActionId("com.linariii.humidity")]
+    public class Humidity : ActionBase
     {
         private const int DataFetchCooldownSec = 300;
 
-        public PowerUsage(SDConnection connection, InitialPayload payload) : base(connection, payload, Functions.EnergyMeter)
+        public Humidity(SDConnection connection, InitialPayload payload) : base(connection, payload)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
-                Settings = PowerUsagePluginSettings.CreateDefaultSettings();
+                Settings = HumiditPluginSettings.CreateDefaultSettings();
             }
             else
             {
 #if DEBUG
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"Settings: {payload.Settings}");
 #endif
-                Settings = payload.Settings.ToObject<PowerUsagePluginSettings>();
+                Settings = payload.Settings.ToObject<HumiditPluginSettings>();
             }
 
             GlobalSettingsManager.Instance.RequestGlobalSettings();
             UpdateBaseUrl();
         }
 
-        protected PowerUsagePluginSettings Settings
+        protected HumiditPluginSettings Settings
         {
             get
             {
-                var settings = BaseSettings as PowerUsagePluginSettings;
+                var settings = BaseSettings as HumiditPluginSettings;
                 if (settings == null)
                     Logger.Instance.LogMessage(TracingLevel.ERROR, "Cannot convert PluginSettingsBase to PluginSettings");
                 return settings;
@@ -105,13 +105,11 @@ namespace FritzSmartHome.Actions
             {
                 try
                 {
-                    var data = await HomeAutomationClientWrapper.Instance.GetSwitchPower(GlobalSettings.Sid, Settings.Ain);
-                    if (data.HasValue && data.Value >= 0)
+                    var deviceInfos = await HomeAutomationClientWrapper.Instance.GetDeviceInfos(GlobalSettings.Sid, Settings.Ain);
+                    if (deviceInfos?.Humidity != null)
                     {
-                        var powerUsage = (double)data.Value / 1000;
-                        var value = Math.Round(powerUsage, 0);
-                        Settings.Data = value;
-                        await DrawData(value);
+                        Settings.Data = deviceInfos.Humidity.RelHumidity;
+                        await DrawData(deviceInfos.Humidity.RelHumidity);
                         await SaveSettings();
                     }
                     BaseSettings.LastRefresh = DateTime.Now;
@@ -125,7 +123,38 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private async Task DrawData(double powerUsage)
+        private protected override async Task ShouldLoadDevices()
+        {
+            if ((DateTime.Now - BaseSettings.LastRefresh).TotalSeconds > DeviceFetchCooldownSec && !string.IsNullOrWhiteSpace(GlobalSettings.Sid))
+            {
+                await LoadDevices();
+            }
+        }
+
+        private protected override async Task LoadDevices()
+        {
+            if (!string.IsNullOrWhiteSpace(GlobalSettings.Sid))
+            {
+                try
+                {
+                    var devices = await HomeAutomationClientWrapper.Instance.GetDevices(GlobalSettings.Sid);
+                    if (devices != null && devices.Any())
+                    {
+                        Settings.Devices = devices.Where(d => d != null && d.Humidity != null).Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
+                    }
+
+                    BaseSettings.LastRefresh = DateTime.Now;
+                    await SaveSettings();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, $"Error loading data: {ex}");
+                    await ResetSidAndShowAlert();
+                }
+            }
+        }
+
+        private async Task DrawData(int humidity)
         {
             IsInitialized = true;
             const int startingTextY = 21;
@@ -153,7 +182,7 @@ namespace FritzSmartHome.Actions
 
                     stringHeight = graphics.DrawAndMeasureString(Settings.Title, fontDefault, fgBrush, new PointF(stringWidth, stringHeight)) + currencyBufferY;
 
-                    var wattStr = $"{powerUsage} W";
+                    var wattStr = $"{humidity} %";
                     var fontSizeCurrency = graphics.GetFontSizeWhereTextFitsImage(wattStr, width, fontCurrency, 8);
                     fontCurrency = new Font(fontCurrency.Name, fontSizeCurrency, fontCurrency.Style, GraphicsUnit.Pixel);
                     stringWidth = graphics.GetTextCenter(wattStr, width, fontCurrency);

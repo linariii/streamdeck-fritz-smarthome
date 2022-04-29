@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover">
+    <meta name=apple-mobile-web-app-capable content=yes>
+    <meta name=apple-mobile-web-app-status-bar-style content=black>
+    <title>Humidity settings</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css">
+    <script src="../common.js"></script>
+    <script src="../fritz.js"></script>
+    <script src="../reloadDevices.js"></script>
+</head>
+<body>
+    <div class="sdpi-wrapper">
+        <div class="sdpi-item">
+            <details class="message info">
+                <summary>
+                    Please do not set a title or an image for this plugin
+                </summary>
+            </details>
+        </div>
+        <div class="sdpi-item" id="dvBaseUrl">
+            <div class="sdpi-item-label">Fritzbox Url</div>
+            <input class="sdpi-item-value sdPropertyGlobal" placeholder="http://fritz.box/" value="http://fritz.box/" id="baseUrl" oninput="setGlobalSettingsWithTimeout()">
+        </div>
+        <div class="sdpi-item">
+            <details class="message info">
+                <summary>
+                    This plugin needs a fritzbox user that has access to "Smart Home"!
+                </summary>
+            </details>
+        </div>
+        <div class="sdpi-item" id="dvUserName">
+            <div class="sdpi-item-label">Username</div>
+            <input class="sdpi-item-value sdPropertyGlobal" value="" id="userName" oninput="setGlobalSettingsWithTimeout()">
+        </div>
+        <div class="sdpi-item" id="dvPassword">
+            <div class="sdpi-item-label">Password</div>
+            <input class="sdpi-item-value sdPropertyGlobal" value="" id="password" type="password" oninput="setGlobalSettingsWithTimeout()">
+        </div>
+        <div id="dvAllSettings" style="display:none;">
+            <div class="sdpi-item">
+                <div class="sdpi-item-label">Device</div>
+                <select class="sdpi-item-value select sdProperty sdList" id="devices" oninput="setSettings()" sdListTextProperty="name" sdListValueProperty="ain" sdValueField="ain"></select>
+            </div>
+            <div class="sdpi-item" id="dvRefreshDevices">
+                <div class="sdpi-item-label">Refresh</div>
+                <button class="sdpi-item-value" onclick="reloadDevices()">Reload devices</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

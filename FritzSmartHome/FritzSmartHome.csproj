@@ -66,6 +66,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Actions\ActionBase.cs" />
+    <Compile Include="Actions\Humidity.cs" />
+    <Compile Include="Actions\Temperature.cs" />
+    <Compile Include="Settings\TemperaturePluginSettings.cs" />
+    <Compile Include="Settings\HumiditPluginSettings.cs" />
     <Compile Include="Settings\PowerUsagePluginSettings.cs" />
     <Compile Include="Settings\OutletPluginSettings.cs" />
     <Compile Include="Settings\GlobalPluginSettings.cs" />
@@ -88,6 +92,18 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\home.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\humidity%402x.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\humidity-key%402x.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\humidity-key.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\humidity.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\off%402x.png">
@@ -126,7 +142,25 @@
     <Content Include="Images\power.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\thermometer%402x.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\thermometer-key%402x.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\thermometer-key.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\thermometer.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="PropertyInspector\common.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\FritzSmarthome\Humidity.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PropertyInspector\FritzSmarthome\Temperature.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="PropertyInspector\reloadDevices.js">
@@ -156,7 +190,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Fritz.HomeAutomation">
-      <Version>1.0.0.4</Version>
+      <Version>1.0.0.6</Version>
     </PackageReference>
     <PackageReference Include="StreamDeck-Tools">
       <Version>3.2.0</Version>

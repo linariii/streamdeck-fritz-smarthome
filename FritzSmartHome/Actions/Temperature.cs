@@ -10,34 +10,34 @@ using FritzSmartHome.Settings;
 
 namespace FritzSmartHome.Actions
 {
-    [PluginActionId("com.linariii.powerusage")]
-    public class PowerUsage : ActionBase
+    [PluginActionId("com.linariii.temperature")]
+    public class Temperature : ActionBase
     {
         private const int DataFetchCooldownSec = 300;
 
-        public PowerUsage(SDConnection connection, InitialPayload payload) : base(connection, payload, Functions.EnergyMeter)
+        public Temperature(SDConnection connection, InitialPayload payload) : base(connection, payload, Functions.TemperatureSensor)
         {
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
-                Settings = PowerUsagePluginSettings.CreateDefaultSettings();
+                Settings = TemperaturePluginSettings.CreateDefaultSettings();
             }
             else
             {
 #if DEBUG
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"Settings: {payload.Settings}");
 #endif
-                Settings = payload.Settings.ToObject<PowerUsagePluginSettings>();
+                Settings = payload.Settings.ToObject<TemperaturePluginSettings>();
             }
 
             GlobalSettingsManager.Instance.RequestGlobalSettings();
             UpdateBaseUrl();
         }
 
-        protected PowerUsagePluginSettings Settings
+        protected TemperaturePluginSettings Settings
         {
             get
             {
-                var settings = BaseSettings as PowerUsagePluginSettings;
+                var settings = BaseSettings as TemperaturePluginSettings;
                 if (settings == null)
                     Logger.Instance.LogMessage(TracingLevel.ERROR, "Cannot convert PluginSettingsBase to PluginSettings");
                 return settings;
@@ -105,10 +105,10 @@ namespace FritzSmartHome.Actions
             {
                 try
                 {
-                    var data = await HomeAutomationClientWrapper.Instance.GetSwitchPower(GlobalSettings.Sid, Settings.Ain);
+                    var data = await HomeAutomationClientWrapper.Instance.GetTemperature(GlobalSettings.Sid, Settings.Ain);
                     if (data.HasValue && data.Value >= 0)
                     {
-                        var powerUsage = (double)data.Value / 1000;
+                        var powerUsage = data.Value / 10;
                         var value = Math.Round(powerUsage, 0);
                         Settings.Data = value;
                         await DrawData(value);
@@ -125,7 +125,7 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private async Task DrawData(double powerUsage)
+        private async Task DrawData(double temperature)
         {
             IsInitialized = true;
             const int startingTextY = 21;
@@ -153,7 +153,7 @@ namespace FritzSmartHome.Actions
 
                     stringHeight = graphics.DrawAndMeasureString(Settings.Title, fontDefault, fgBrush, new PointF(stringWidth, stringHeight)) + currencyBufferY;
 
-                    var wattStr = $"{powerUsage} W";
+                    var wattStr = $"{temperature} °C";
                     var fontSizeCurrency = graphics.GetFontSizeWhereTextFitsImage(wattStr, width, fontCurrency, 8);
                     fontCurrency = new Font(fontCurrency.Name, fontSizeCurrency, fontCurrency.Style, GraphicsUnit.Pixel);
                     stringWidth = graphics.GetTextCenter(wattStr, width, fontCurrency);

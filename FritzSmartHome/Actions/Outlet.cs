@@ -36,23 +36,23 @@ namespace FritzSmartHome.Actions
         {
             get
             {
-                var settings = _settings as OutletPluginSettings;
+                var settings = BaseSettings as OutletPluginSettings;
                 if (settings == null)
                     Logger.Instance.LogMessage(TracingLevel.ERROR, "Cannot convert PluginSettingsBase to PluginSettings");
                 return settings;
             }
-            set => _settings = value;
+            set => BaseSettings = value;
         }
 
         public override async void KeyPressed(KeyPayload payload)
         {
-            if (_globalSettings == null || _settings == null)
+            if (GlobalSettings == null || BaseSettings == null)
                 return;
             try
             {
-                if (!string.IsNullOrWhiteSpace(_globalSettings.Sid) && !string.IsNullOrWhiteSpace(_settings.Ain))
+                if (!string.IsNullOrWhiteSpace(GlobalSettings.Sid) && !string.IsNullOrWhiteSpace(BaseSettings.Ain))
                 {
-                    var state = await HomeAutomationClientWrapper.Instance.SetSwitchToggle(_globalSettings.Sid, _settings.Ain);
+                    var state = await HomeAutomationClientWrapper.Instance.SetSwitchToggle(GlobalSettings.Sid, BaseSettings.Ain);
                     if (state.HasValue)
                     {
                         if (Settings.State != state.Value)
@@ -61,7 +61,7 @@ namespace FritzSmartHome.Actions
                             await Connection.SetStateAsync((uint)state.Value);
                         }
                     }
-                    _settings.LastRefresh = DateTime.Now;
+                    BaseSettings.LastRefresh = DateTime.Now;
                     await SaveSettings();
                 }
             }
@@ -74,10 +74,10 @@ namespace FritzSmartHome.Actions
 
         public override async void OnTick()
         {
-            if (_globalSettings == null || _settings == null)
+            if (GlobalSettings == null || BaseSettings == null)
                 return;
 
-            if (_isRunning > 0)
+            if (IsRunning > 0)
                 return;
 
             var locked = false;
@@ -86,27 +86,27 @@ namespace FritzSmartHome.Actions
                 try { }
                 finally
                 {
-                    locked = Interlocked.CompareExchange(ref _isRunning, 1, 0) == 0;
+                    locked = Interlocked.CompareExchange(ref IsRunning, 1, 0) == 0;
                 }
 
                 if (locked)
                 {
-                    if (string.IsNullOrWhiteSpace(_globalSettings.Sid)
-                        && !string.IsNullOrWhiteSpace(_globalSettings.UserName)
-                        && !string.IsNullOrWhiteSpace(_globalSettings.Password)
-                        && !string.IsNullOrWhiteSpace(_globalSettings.BaseUrl))
+                    if (string.IsNullOrWhiteSpace(GlobalSettings.Sid)
+                        && !string.IsNullOrWhiteSpace(GlobalSettings.UserName)
+                        && !string.IsNullOrWhiteSpace(GlobalSettings.Password)
+                        && !string.IsNullOrWhiteSpace(GlobalSettings.BaseUrl))
                     {
                         await Login();
                         return;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(_globalSettings.Sid) && (_settings.Devices == null || !_settings.Devices.Any()))
+                    if (!string.IsNullOrWhiteSpace(GlobalSettings.Sid) && (BaseSettings.Devices == null || !BaseSettings.Devices.Any()))
                     {
                         await ShouldLoadDevices();
                         return;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(_globalSettings.Sid) && !string.IsNullOrWhiteSpace(_settings.Ain))
+                    if (!string.IsNullOrWhiteSpace(GlobalSettings.Sid) && !string.IsNullOrWhiteSpace(BaseSettings.Ain))
                     {
                         await LoadState();
                     }
@@ -115,19 +115,19 @@ namespace FritzSmartHome.Actions
             finally
             {
                 if (locked)
-                    Interlocked.Exchange(ref _isRunning, 0);
+                    Interlocked.Exchange(ref IsRunning, 0);
             }
         }
 
         private async Task LoadState()
         {
-            if ((DateTime.Now - _settings.LastRefresh).TotalSeconds > StateFetchCooldownSec
-                && !string.IsNullOrWhiteSpace(_globalSettings.Sid)
-                && !string.IsNullOrWhiteSpace(_settings.Ain))
+            if ((DateTime.Now - BaseSettings.LastRefresh).TotalSeconds > StateFetchCooldownSec
+                && !string.IsNullOrWhiteSpace(GlobalSettings.Sid)
+                && !string.IsNullOrWhiteSpace(BaseSettings.Ain))
             {
                 try
                 {
-                    var data = await HomeAutomationClientWrapper.Instance.GetSwitchState(_globalSettings.Sid, _settings.Ain);
+                    var data = await HomeAutomationClientWrapper.Instance.GetSwitchState(GlobalSettings.Sid, BaseSettings.Ain);
                     if (data.HasValue)
                     {
                         if (Settings.State != data.Value)
@@ -136,7 +136,7 @@ namespace FritzSmartHome.Actions
                             await Connection.SetStateAsync((uint)data.Value);
                         }
                     }
-                    _settings.LastRefresh = DateTime.Now;
+                    BaseSettings.LastRefresh = DateTime.Now;
                     await SaveSettings();
                 }
                 catch (Exception ex)

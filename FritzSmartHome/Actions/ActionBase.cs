@@ -12,16 +12,16 @@ namespace FritzSmartHome.Actions
 {
     public abstract class ActionBase : PluginBase
     {
-        private protected readonly Functions _deviceFilter;
-        private protected readonly GlobalPluginSettings _globalSettings;
-        private protected PluginSettingsBase _settings;
-        private protected int _isRunning = 0;
+        private protected readonly Functions DeviceFilter;
+        private protected readonly GlobalPluginSettings GlobalSettings;
+        private protected PluginSettingsBase BaseSettings;
+        private protected int IsRunning = 0;
         private protected const int DeviceFetchCooldownSec = 300;
 
         protected ActionBase(ISDConnection connection, InitialPayload payload, Functions deviceFilter) : base(connection, payload)
         {
-            _deviceFilter = deviceFilter;
-            _globalSettings = GlobalPluginSettings.CreateDefaultSettings();
+            DeviceFilter = deviceFilter;
+            GlobalSettings = GlobalPluginSettings.CreateDefaultSettings();
             GlobalSettingsManager.Instance.RequestGlobalSettings();
             Connection.OnSendToPlugin += Connection_OnSendToPlugin;
         }
@@ -63,32 +63,32 @@ namespace FritzSmartHome.Actions
 
         private protected async Task SaveGlobalSettings(bool triggerDidReceiveGlobalSettings = true)
         {
-            if (_globalSettings != null)
+            if (GlobalSettings != null)
             {
 #if DEBUG
-                Logger.Instance.LogMessage(TracingLevel.INFO, $"SaveGlobalSettings: {JObject.FromObject(_globalSettings)}");
+                Logger.Instance.LogMessage(TracingLevel.INFO, $"SaveGlobalSettings: {JObject.FromObject(GlobalSettings)}");
 #endif
-                await Connection.SetGlobalSettingsAsync(JObject.FromObject(_globalSettings), triggerDidReceiveGlobalSettings);
+                await Connection.SetGlobalSettingsAsync(JObject.FromObject(GlobalSettings), triggerDidReceiveGlobalSettings);
             }
         }
 
         private protected async Task SaveSettings()
         {
 #if DEBUG
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"SaveSettings: {JObject.FromObject(_settings)}");
+            Logger.Instance.LogMessage(TracingLevel.INFO, $"SaveSettings: {JObject.FromObject(BaseSettings)}");
 #endif
-            await Connection.SetSettingsAsync(JObject.FromObject(_settings));
+            await Connection.SetSettingsAsync(JObject.FromObject(BaseSettings));
         }
 
         private protected async Task Login()
         {
             try
             {
-                var sid = await HomeAutomationClientWrapper.Instance.GetSid(_globalSettings.UserName, _globalSettings.Password);
+                var sid = await HomeAutomationClientWrapper.Instance.GetSid(GlobalSettings.UserName, GlobalSettings.Password);
                 if (!string.IsNullOrWhiteSpace(sid) && sid != "0000000000000000")
                 {
                     await Connection.ShowOk();
-                    _globalSettings.Sid = sid;
+                    GlobalSettings.Sid = sid;
                     await SaveGlobalSettings();
                 }
                 else
@@ -105,25 +105,26 @@ namespace FritzSmartHome.Actions
 
         private protected async Task ShouldLoadDevices()
         {
-            if ((DateTime.Now - _settings.LastRefresh).TotalSeconds > DeviceFetchCooldownSec && !string.IsNullOrWhiteSpace(_globalSettings.Sid))
+            if ((DateTime.Now - BaseSettings.LastRefresh).TotalSeconds > DeviceFetchCooldownSec && !string.IsNullOrWhiteSpace(GlobalSettings.Sid))
             {
                 await LoadDevices();
+
             }
         }
 
         private protected async Task LoadDevices()
         {
-            if (!string.IsNullOrWhiteSpace(_globalSettings.Sid))
+            if (!string.IsNullOrWhiteSpace(GlobalSettings.Sid))
             {
                 try
                 {
-                    var devices = await HomeAutomationClientWrapper.Instance.GetFilteredDevices(_globalSettings.Sid, _deviceFilter);
+                    var devices = await HomeAutomationClientWrapper.Instance.GetFilteredDevices(GlobalSettings.Sid, DeviceFilter);
                     if (devices != null && devices.Any())
                     {
-                        _settings.Devices = devices.Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
+                        BaseSettings.Devices = devices.Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
                     }
 
-                    _settings.LastRefresh = DateTime.Now;
+                    BaseSettings.LastRefresh = DateTime.Now;
                     await SaveSettings();
                 }
                 catch (Exception ex)
@@ -145,31 +146,31 @@ namespace FritzSmartHome.Actions
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"ReceivedGlobalSettings: {payload.Settings}");
 #endif
                 var settings = payload.Settings.ToObject<GlobalPluginSettings>();
-                if (settings != null && _globalSettings != null)
+                if (settings != null && GlobalSettings != null)
                 {
                     var updated = false;
-                    if (settings.BaseUrl != _globalSettings.BaseUrl)
+                    if (settings.BaseUrl != GlobalSettings.BaseUrl)
                     {
                         updated = true;
-                        _globalSettings.BaseUrl = settings.BaseUrl;
+                        GlobalSettings.BaseUrl = settings.BaseUrl;
                         UpdateBaseUrl();
                     }
 
-                    if (settings.Password != _globalSettings.Password)
+                    if (settings.Password != GlobalSettings.Password)
                     {
                         updated = true;
-                        _globalSettings.Password = settings.Password;
+                        GlobalSettings.Password = settings.Password;
                     }
 
-                    if (settings.UserName != _globalSettings.UserName)
+                    if (settings.UserName != GlobalSettings.UserName)
                     {
                         updated = true;
-                        _globalSettings.UserName = settings.UserName;
+                        GlobalSettings.UserName = settings.UserName;
                     }
 
-                    if (settings.Sid != _globalSettings.Sid)
+                    if (settings.Sid != GlobalSettings.Sid)
                     {
-                        _globalSettings.Sid = settings.Sid;
+                        GlobalSettings.Sid = settings.Sid;
                     }
 
                     await SaveGlobalSettings(updated);
@@ -180,17 +181,17 @@ namespace FritzSmartHome.Actions
         private protected async Task ResetSidAndShowAlert()
         {
             await Connection.ShowAlert();
-            if (!string.IsNullOrEmpty(_globalSettings.Sid))
+            if (!string.IsNullOrEmpty(GlobalSettings.Sid))
             {
-                _globalSettings.Sid = null;
+                GlobalSettings.Sid = null;
                 await SaveGlobalSettings();
             }
         }
 
         private protected void UpdateBaseUrl()
         {
-            if (!string.IsNullOrWhiteSpace(_globalSettings.BaseUrl))
-                HomeAutomationClientWrapper.Instance.BaseUrl = _globalSettings.BaseUrl;
+            if (!string.IsNullOrWhiteSpace(GlobalSettings.BaseUrl))
+                HomeAutomationClientWrapper.Instance.BaseUrl = GlobalSettings.BaseUrl;
         }
     }
 }

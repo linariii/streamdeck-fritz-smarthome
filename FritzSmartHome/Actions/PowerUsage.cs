@@ -27,8 +27,6 @@ namespace FritzSmartHome.Actions
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"Settings: {payload.Settings}");
 #endif
                 Settings = payload.Settings.ToObject<PowerUsagePluginSettings>();
-                if (Settings != null)
-                    Settings.LastRefresh = DateTime.MinValue;
             }
 
             GlobalSettingsManager.Instance.RequestGlobalSettings();
@@ -49,7 +47,7 @@ namespace FritzSmartHome.Actions
 
         public override async void OnTick()
         {
-            if (_globalSettings == null || _settings == null)
+            if (_globalSettings == null || Settings == null)
                 return;
 
             if (_isRunning > 0)
@@ -96,13 +94,13 @@ namespace FritzSmartHome.Actions
 
         private async Task LoadData()
         {
-            if ((DateTime.Now - _settings.LastRefresh).TotalSeconds > DataFetchCooldownSec
+            if ((DateTime.Now - Settings.LastRefresh).TotalSeconds > DataFetchCooldownSec
                 && !string.IsNullOrWhiteSpace(_globalSettings.Sid)
-                && !string.IsNullOrWhiteSpace(_settings.Ain))
+                && !string.IsNullOrWhiteSpace(Settings.Ain))
             {
                 try
                 {
-                    var data = await HomeAutomationClientWrapper.Instance.GetSwitchPower(_globalSettings.Sid, _settings.Ain);
+                    var data = await HomeAutomationClientWrapper.Instance.GetSwitchPower(_globalSettings.Sid, Settings.Ain);
                     if (data.HasValue && data.Value >= 0)
                     {
                         var powerUsage = (double)data.Value / 1000;

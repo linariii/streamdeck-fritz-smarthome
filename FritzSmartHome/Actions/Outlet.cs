@@ -26,8 +26,6 @@ namespace FritzSmartHome.Actions
                 Logger.Instance.LogMessage(TracingLevel.INFO, $"Settings: {payload.Settings}");
 #endif
                 Settings = payload.Settings.ToObject<OutletPluginSettings>();
-                if (Settings != null)
-                    Settings.LastRefresh = DateTime.MinValue;
             }
 
             GlobalSettingsManager.Instance.RequestGlobalSettings();

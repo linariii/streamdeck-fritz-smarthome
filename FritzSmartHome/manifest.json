@@ -40,7 +40,7 @@
         }
       ],
       "SupportedInMultiActions": false,
-      "Tooltip": "Display the temperature measured by supported fritz dect devices",
+      "Tooltip": "Displays the temperature measured by supported fritz dect devices",
       "UUID": "com.linariii.temperature",
       "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Temperature.html"
     },

@@ -1,7 +1,7 @@
 {
   "Actions": [
     {
-      "Icon": "Images/power",
+      "Icon": "Images/power-key",
       "Name": "Power usage",
       "States": [
         {
@@ -32,7 +32,7 @@
       "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Outlet.html"
     },
     {
-      "Icon": "Images/thermometer",
+      "Icon": "Images/thermometer-key",
       "Name": "Temperature",
       "States": [
         {
@@ -40,12 +40,12 @@
         }
       ],
       "SupportedInMultiActions": false,
-      "Tooltip": "Display the current temperature measured by the device",
+      "Tooltip": "Display the temperature measured by supported fritz dect devices",
       "UUID": "com.linariii.temperature",
       "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Temperature.html"
     },
     {
-      "Icon": "Images/humidity",
+      "Icon": "Images/humidity-key",
       "Name": "Humidity",
       "States": [
         {
@@ -53,20 +53,20 @@
         }
       ],
       "SupportedInMultiActions": false,
-      "Tooltip": "Display the current humidity measured by the device",
+      "Tooltip": "Display the humidity measured by supported fritz dect devices",
       "UUID": "com.linariii.humidity",
       "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Humidity.html"
     },
     {
-      "Icon": "Images/humidity",
+      "Icon": "Images/battery-key",
       "Name": "Battery",
       "States": [
         {
-          "Image": "Images/humidity-key"
+          "Image": "Images/battery-key"
         }
       ],
       "SupportedInMultiActions": false,
-      "Tooltip": "Display the battery charge of the device",
+      "Tooltip": "Display the battery charge of supported fritz dect devices",
       "UUID": "com.linariii.battery",
       "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Battery.html"
     }

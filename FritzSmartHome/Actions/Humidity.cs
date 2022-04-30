@@ -143,7 +143,7 @@ namespace FritzSmartHome.Actions
                         Settings.Devices = devices.Where(d => d != null && d.Humidity != null).Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
                     }
 
-                    BaseSettings.LastRefresh = DateTime.Now;
+                    Settings.LastRefresh = DateTime.Now;
                     await SaveSettings();
                 }
                 catch (Exception ex)

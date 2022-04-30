@@ -143,7 +143,7 @@ namespace FritzSmartHome.Actions
                         Settings.Devices = devices.Where(d => (d.BatteryLow == 0 && d.Battery > 0) || (d.BatteryLow == 1 && d.Battery >= 0)).Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
                     }
 
-                    BaseSettings.LastRefresh = DateTime.Now;
+                    Settings.LastRefresh = DateTime.Now;
                     await SaveSettings();
                 }
                 catch (Exception ex)

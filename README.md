@@ -6,27 +6,27 @@
 ## Actions
 * Power Usage
 	* Displays the amount of watt taken from the outlet
-	* requires supported FR!TZ Dect devices (e.g.: FR!TZ Dect 200, FR!TZ DECT 210)
+	* requires supported FR!TZ Dect devices (e.g.: FRITZ!Dect 200, FRITZ!DECT 210)
 	* data is refresh every five minutes 
 	* button push > no action
 * Outlet
 	* Displays the state of the outlet (on/off)
-	* requires supported FR!TZ Dect devices (e.g.: FR!TZ Dect 200, FR!TZ DECT 210)
+	* requires supported FR!TZ Dect devices (e.g.: FRITZ!Dect 200, FRITZ!DECT 210)
 	* state is refreshed every minute
 	* button push > toggle state
 * Temperature
 	* Displays the current temperature
-	 * requires supported FR!TZ Dect devices (e.g.: FR!TZ Dect 200, FR!TZ DECT 210, FR!TZ Dect 301, FR!TZ Dect 440, ...)
+	 * requires supported FR!TZ Dect devices (e.g.: FRITZ!Dect 200, FRITZ!Dect 210, FRITZ!Dect 301, FRITZ!Dect 440, ...)
 	 * data is refresh every five minutes
 	 * button push > no action
  * Humidity
 	 * Displays the current humidity
-	 * requires supported FR!TZ Dect devices (e.g.: FR!TZ Dect 440)
+	 * requires supported FR!TZ Dect devices (e.g.: FRITZ!Dect 440)
 	 * data is refresh every five minutes
 	 * button push > no action
  * Battery
 	 * Display the current batter charge of FR!TZ Dect devices that require a battery
-	 * requires supported FR!TZ Dect devices (e.g.: FR!TZ Dect 301, FR!TZ Dect 440, ...)
+	 * requires supported FR!TZ Dect devices (e.g.: FRITZ!Dect 301, FRITZ!Dect 440, ...)
 	 * data is refresh every five minutes
 	 * button push > no action
 

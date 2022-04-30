@@ -56,6 +56,19 @@
       "Tooltip": "Display the current humidity measured by the device",
       "UUID": "com.linariii.humidity",
       "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Humidity.html"
+    },
+    {
+      "Icon": "Images/humidity",
+      "Name": "Battery",
+      "States": [
+        {
+          "Image": "Images/humidity-key"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "Tooltip": "Display the battery charge of the device",
+      "UUID": "com.linariii.battery",
+      "PropertyInspectorPath": "PropertyInspector/FritzSmarthome/Battery.html"
     }
   ],
   "Author": "linariii",

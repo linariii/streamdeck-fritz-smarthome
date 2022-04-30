@@ -1,13 +1,34 @@
+
 # Fritz Homeautomation for Elgato Stream Deck
 
 [![CI](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CI.yml/badge.svg)](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CI.yml) [![CD](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CD.yml/badge.svg)](https://github.com/linariii/streamdeck-fritz-smarthome/actions/workflows/CD.yml)
 
-## Features
-- display current power usage of AVM FRITZ!DECT 200 and AVM FRITZ!DECT 210 [^1]
-- display current temperatur of AVM FRITZ!DECT 200, AVM FRITZ!DECT 210, AVM FRITZ!DECT 400 or Fritz Dect 440 [^2]
-- display current humidity of AVM FRITZ!DECT 400 or Fritz Dect 440 [^2]
-- display and change the current state of AVM FRITZ!DECT 200 and AVM FRITZ!DECT 210 [^2]
-- display and change the current state of AVM FRITZ!DECT 500 [^2]
+## Actions
+* Power Usage
+	* Displays the amount of watt taken from the outlet
+	* requires supported FR!TZ Dect devices (e.g.: FR!TZ Dect 200, FR!TZ DECT 210)
+	* data is refresh every five minutes 
+	* button push > no action
+* Outlet
+	* Displays the state of the outlet (on/off)
+	* requires supported FR!TZ Dect devices (e.g.: FR!TZ Dect 200, FR!TZ DECT 210)
+	* state is refreshed every minute
+	* button push > toggle state
+* Temperature
+	* Displays the current temperature
+	 * requires supported FR!TZ Dect devices (e.g.: FR!TZ Dect 200, FR!TZ DECT 210, FR!TZ Dect 301, FR!TZ Dect 440, ...)
+	 * data is refresh every five minutes
+	 * button push > no action
+ * Humidity
+	 * Displays the current humidity
+	 * requires supported FR!TZ Dect devices (e.g.: FR!TZ Dect 440)
+	 * data is refresh every five minutes
+	 * button push > no action
+ * Battery
+	 * Display the current batter charge of FR!TZ Dect devices that require a battery
+	 * requires supported FR!TZ Dect devices (e.g.: FR!TZ Dect 301, FR!TZ Dect 440, ...)
+	 * data is refresh every five minutes
+	 * button push > no action
 
 ## Support
  - Supports Windows: Yes
@@ -17,7 +38,3 @@
 * Uses [StreamDeck-Tools](https://github.com/BarRaider/streamdeck-tools) by BarRaider: [![NuGet](https://img.shields.io/nuget/v/streamdeck-tools.svg?style=flat)](https://www.nuget.org/packages/streamdeck-tools)
 * Uses [Easy-PI](https://github.com/BarRaider/streamdeck-easypi) by BarRaider - Provides seamless integration with the Stream Deck PI (Property Inspector) 
 * Uses [fritz-homeautomation-csharp](https://github.com/linariii/fritz-homeautomation-csharp) [![NuGet](https://img.shields.io/nuget/v/Fritz.HomeAutomation.svg?style=flat)](https://www.nuget.org/packages/Fritz.HomeAutomation/)
-
-[^1]: wip
-[^2]: planned
-[^3]: done

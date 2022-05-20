@@ -15,6 +15,6 @@ namespace FritzSmartHome.Settings
         }
 
         [JsonProperty(PropertyName = "state")]
-        public int? State { get; set; }
+        public uint? State { get; set; }
     }
 }

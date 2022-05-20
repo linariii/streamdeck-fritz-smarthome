@@ -108,8 +108,8 @@ namespace FritzSmartHome.Actions
                     var deviceInfos = await HomeAutomationClientWrapper.Instance.GetDeviceInfos(GlobalSettings.Sid, Settings.Ain);
                     if (deviceInfos?.Humidity != null)
                     {
-                        Settings.Data = deviceInfos.Humidity.RelHumidity;
-                        await DrawData(deviceInfos.Humidity.RelHumidity);
+                        Settings.Data = deviceInfos.Humidity.RelativeHumidity;
+                        await DrawData(deviceInfos.Humidity.RelativeHumidity);
                         await SaveSettings();
                     }
                     BaseSettings.LastRefresh = DateTime.Now;
@@ -140,7 +140,7 @@ namespace FritzSmartHome.Actions
                     var devices = await HomeAutomationClientWrapper.Instance.GetDevices(GlobalSettings.Sid);
                     if (devices != null && devices.Any())
                     {
-                        Settings.Devices = devices.Where(d => d != null && d.Humidity != null).Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
+                        Settings.Devices = devices.Where(d => d != null && d.Humidity != null).Select(d => new Device { Ain = d.Ain, Name = d.Name }).ToList(); ;
                     }
 
                     Settings.LastRefresh = DateTime.Now;
@@ -154,7 +154,7 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private async Task DrawData(int humidity)
+        private async Task DrawData(uint humidity)
         {
             IsInitialized = true;
             const int startingTextY = 21;
@@ -214,7 +214,7 @@ namespace FritzSmartHome.Actions
                 {
                     if (!string.IsNullOrWhiteSpace(Settings.Ain))
                     {
-                        Settings.Title = Settings.Devices.FirstOrDefault(d => d.Ain == BaseSettings.Ain)?.Name;
+                        Settings.Title = Settings.Devices.FirstOrDefault(d => d.Ain == Settings.Ain)?.Name;
                     }
                     Settings.LastRefresh = DateTime.MinValue;
                     await SaveSettings();

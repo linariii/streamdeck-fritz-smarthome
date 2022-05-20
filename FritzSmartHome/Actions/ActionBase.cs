@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BarRaider.SdTools;
-using Fritz.HomeAutomation;
+using Fritz.HomeAutomation.Enums;
 using FritzSmartHome.Backend;
 using FritzSmartHome.Models;
 using FritzSmartHome.Settings;
@@ -92,7 +92,7 @@ namespace FritzSmartHome.Actions
         {
             try
             {
-                var sid = await HomeAutomationClientWrapper.Instance.GetSid(GlobalSettings.UserName, GlobalSettings.Password);
+                var sid = await HomeAutomationClientWrapper.Instance.GetSessionId(GlobalSettings.UserName, GlobalSettings.Password);
                 if (!string.IsNullOrWhiteSpace(sid) && sid != "0000000000000000")
                 {
                     await Connection.ShowOk();
@@ -116,7 +116,6 @@ namespace FritzSmartHome.Actions
             if ((DateTime.Now - BaseSettings.LastRefresh).TotalSeconds > DeviceFetchCooldownSec && !string.IsNullOrWhiteSpace(GlobalSettings.Sid))
             {
                 await LoadDevices();
-
             }
         }
 
@@ -129,7 +128,7 @@ namespace FritzSmartHome.Actions
                     var devices = await HomeAutomationClientWrapper.Instance.GetFilteredDevices(GlobalSettings.Sid, DeviceFilter);
                     if (devices != null && devices.Any())
                     {
-                        BaseSettings.Devices = devices.Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
+                        BaseSettings.Devices = devices.Select(d => new Device { Ain = d.Ain, Name = d.Name }).ToList(); ;
                     }
 
                     BaseSettings.LastRefresh = DateTime.Now;

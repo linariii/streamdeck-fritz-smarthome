@@ -18,6 +18,6 @@ namespace FritzSmartHome.Settings
         public string Title { get; set; }
 
         [JsonProperty(PropertyName ="data")]
-        public int? Data { get; set; }
+        public uint? Data { get; set; }
     }
 }

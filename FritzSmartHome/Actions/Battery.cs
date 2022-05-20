@@ -106,10 +106,10 @@ namespace FritzSmartHome.Actions
                 try
                 {
                     var deviceInfos = await HomeAutomationClientWrapper.Instance.GetDeviceInfos(GlobalSettings.Sid, Settings.Ain);
-                    if (deviceInfos != null)
+                    if (deviceInfos?.BatteryCharge != null)
                     {
-                        Settings.Data = deviceInfos.Battery;
-                        await DrawData(deviceInfos.Battery);
+                        Settings.Data = deviceInfos.BatteryCharge;
+                        await DrawData(deviceInfos.BatteryCharge.Value);
                         await SaveSettings();
                     }
                     BaseSettings.LastRefresh = DateTime.Now;
@@ -140,7 +140,7 @@ namespace FritzSmartHome.Actions
                     var devices = await HomeAutomationClientWrapper.Instance.GetDevices(GlobalSettings.Sid);
                     if (devices != null && devices.Any())
                     {
-                        Settings.Devices = devices.Where(d => (d.BatteryLow == 0 && d.Battery > 0) || (d.BatteryLow == 1 && d.Battery >= 0)).Select(d => new Device { Ain = d.Identifier, Name = d.Name }).ToList(); ;
+                        Settings.Devices = devices.Where(d => (d.BatteryState == Fritz.HomeAutomation.Enums.Battery.Low && d.BatteryCharge > 0) || (d.BatteryState == Fritz.HomeAutomation.Enums.Battery.Ok && d.BatteryCharge >= 0)).Select(d => new Device { Ain = d.Ain, Name = d.Name }).ToList(); ;
                     }
 
                     Settings.LastRefresh = DateTime.Now;
@@ -154,7 +154,7 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private async Task DrawData(int charge)
+        private async Task DrawData(uint charge)
         {
             IsInitialized = true;
             const int startingTextY = 21;
@@ -215,7 +215,7 @@ namespace FritzSmartHome.Actions
                 {
                     if (!string.IsNullOrWhiteSpace(Settings.Ain))
                     {
-                        Settings.Title = Settings.Devices.FirstOrDefault(d => d.Ain == BaseSettings.Ain)?.Name;
+                        Settings.Title = Settings.Devices.FirstOrDefault(d => d.Ain == Settings.Ain)?.Name;
                     }
                     Settings.LastRefresh = DateTime.MinValue;
                     await SaveSettings();

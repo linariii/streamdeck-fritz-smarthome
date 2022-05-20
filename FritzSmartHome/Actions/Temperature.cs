@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fritz.HomeAutomation;
+using Fritz.HomeAutomation.Enums;
 using FritzSmartHome.Backend;
 using FritzSmartHome.Settings;
 
@@ -106,9 +106,9 @@ namespace FritzSmartHome.Actions
                 try
                 {
                     var data = await HomeAutomationClientWrapper.Instance.GetTemperature(GlobalSettings.Sid, Settings.Ain);
-                    if (data.HasValue && data.Value >= 0)
+                    if (data.HasValue)
                     {
-                        var powerUsage = data.Value / 10;
+                        var powerUsage = (double)data.Value / 10;
                         var value = Math.Round(powerUsage, 0);
                         Settings.Data = value;
                         await DrawData(value);
@@ -185,7 +185,7 @@ namespace FritzSmartHome.Actions
                 {
                     if (!string.IsNullOrWhiteSpace(Settings.Ain))
                     {
-                        Settings.Title = Settings.Devices.FirstOrDefault(d => d.Ain == BaseSettings.Ain)?.Name;
+                        Settings.Title = Settings.Devices.FirstOrDefault(d => d.Ain == Settings.Ain)?.Name;
                     }
                     Settings.LastRefresh = DateTime.MinValue;
                     await SaveSettings();

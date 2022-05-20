@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Fritz.HomeAutomation;
+using Fritz.HomeAutomation.Enums;
 using FritzSmartHome.Backend;
 using FritzSmartHome.Settings;
 
@@ -55,10 +55,11 @@ namespace FritzSmartHome.Actions
                     var state = await HomeAutomationClientWrapper.Instance.SetSwitchToggle(GlobalSettings.Sid, BaseSettings.Ain);
                     if (state.HasValue)
                     {
-                        if (Settings.State != state.Value)
+                        var value = (uint)state.Value;
+                        if (Settings.State != value)
                         {
-                            Settings.State = state.Value;
-                            await Connection.SetStateAsync((uint)state.Value);
+                            Settings.State = value;
+                            await Connection.SetStateAsync(value);
                         }
                     }
                     BaseSettings.LastRefresh = DateTime.Now;
@@ -136,11 +137,12 @@ namespace FritzSmartHome.Actions
                     var data = await HomeAutomationClientWrapper.Instance.GetSwitchState(GlobalSettings.Sid, BaseSettings.Ain);
                     if (data.HasValue)
                     {
-                        if (Settings.State != data.Value)
+                        var value = (uint)data.Value;
+                        if (Settings.State != value)
                         {
                             IsInitialized = true;
-                            Settings.State = data.Value;
-                            await Connection.SetStateAsync((uint)data.Value);
+                            Settings.State = value;
+                            await Connection.SetStateAsync(value);
                         }
                     }
                     BaseSettings.LastRefresh = DateTime.Now;

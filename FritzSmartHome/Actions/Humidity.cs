@@ -154,7 +154,7 @@ namespace FritzSmartHome.Actions
             }
         }
 
-        private async Task DrawData(uint humidity)
+        private async Task DrawData(int humidity)
         {
             IsInitialized = true;
             const int startingTextY = 21;
@@ -182,7 +182,7 @@ namespace FritzSmartHome.Actions
 
                     stringHeight = graphics.DrawAndMeasureString(Settings.Title, fontDefault, fgBrush, new PointF(stringWidth, stringHeight)) + currencyBufferY;
 
-                    var wattStr = $"{humidity} %";
+                    var wattStr = humidity < 0 ? "unknown" : $"{humidity} %";
                     var fontSizeCurrency = graphics.GetFontSizeWhereTextFitsImage(wattStr, width, fontCurrency, 8);
                     fontCurrency = new Font(fontCurrency.Name, fontSizeCurrency, fontCurrency.Style, GraphicsUnit.Pixel);
                     stringWidth = graphics.GetTextCenter(wattStr, width, fontCurrency);
